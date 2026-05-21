@@ -1,1 +1,1 @@
-FROM infiniflow/ragflow:latest
+FROM infiniflow/ragflow:v0.25.5
