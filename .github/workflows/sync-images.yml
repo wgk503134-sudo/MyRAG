@@ -1,1 +1,50 @@
+name: 同步镜像到阿里云
+on:
+  # 手动点击运行
+  workflow_dispatch:
 
+jobs:
+  sync-images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 登录阿里云镜像仓库
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ALIYUN_REGISTRY }}
+          username: ${{ secrets.ALIYUN_USERNAME }}
+          password: ${{ secrets.ALIYUN_PASSWORD }}
+
+      # 1. 同步 MySQL 8.0.39
+      - name: 同步 MySQL
+        run: |
+          docker pull mysql:8.0.39
+          docker tag mysql:8.0.39 ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/mysql-ragflow:8.0.39
+          docker push ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/mysql-ragflow:8.0.39
+
+      # 2. 同步 Elasticsearch 8.11.3
+      - name: 同步 Elasticsearch
+        run: |
+          docker pull docker.elastic.co/elasticsearch/elasticsearch:8.11.3
+          docker tag docker.elastic.co/elasticsearch/elasticsearch:8.11.3 ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/elasticsearch-ragflow:8.11.3
+          docker push ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/elasticsearch-ragflow:8.11.3
+
+      # 3. 同步 MinIO
+      - name: 同步 MinIO
+        run: |
+          docker pull minio/minio:RELEASE.2026-03-25T00-00-00Z
+          docker tag minio/minio:RELEASE.2026-03-25T00-00-00Z ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/minio-ragflow:RELEASE.2026-03-25T00-00-00Z
+          docker push ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/minio-ragflow:RELEASE.2026-03-25T00-00-00Z
+
+      # 4. 同步 Valkey 8
+      - name: 同步 Valkey
+        run: |
+          docker pull valkey/valkey:8
+          docker tag valkey/valkey:8 ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/valkey-ragflow:8
+          docker push ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/valkey-ragflow:8
+
+      # 5. 同步 RAGFlow 主镜像
+      - name: 同步 RAGFlow
+        run: |
+          docker pull infiniflow/ragflow:latest
+          docker tag infiniflow/ragflow:latest ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/ragflow-main:latest
+          docker push ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/ragflow-main:latest
